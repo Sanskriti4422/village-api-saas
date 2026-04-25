@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model State {
+  id        String     @id @default(cuid())
+  code      String?
+  name      String
+  slug      String     @unique
+  districts District[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model District {
+  id           String        @id @default(cuid())
+  code         String?
+  name         String
+  slug         String
+  stateId      String
+  state        State         @relation(fields: [stateId], references: [id])
+  subDistricts SubDistrict[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([stateId, slug])
+}
+
+model SubDistrict {
+  id         String    @id @default(cuid())
+  code       String?
+  name       String
+  slug       String
+  districtId String
+  district   District  @relation(fields: [districtId], references: [id])
+  villages   Village[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([districtId, slug])
+}
+
+model Village {
+  id            String      @id @default(cuid())
+  code          String?
+  name          String
+  slug          String
+  displayName   String
+  searchText    String
+  subDistrictId String
+  subDistrict   SubDistrict @relation(fields: [subDistrictId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([subDistrictId, slug])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  role      UserRole @default(CLIENT)
+  plan      Plan     @default(FREE)
+  apiKeys   ApiKey[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ApiKey {
+  id         String     @id @default(cuid())
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+  name       String
+  keyPrefix  String     @unique
+  keyHash    String     @unique
+  isActive   Boolean    @default(true)
+  lastUsedAt DateTime?
+  usageLogs  UsageLog[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  apiKeyId  String
+  apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id])
+  endpoint  String
+  status    Int
+  createdAt DateTime @default(now())
+
+  @@index([apiKeyId, createdAt])
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+  PRO
+  UNLIMITED
+}

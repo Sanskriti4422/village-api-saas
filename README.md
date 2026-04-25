@@ -22,7 +22,19 @@ A production-style backend SaaS platform that provides REST APIs for India's vil
 ## ⚙️ Setup Instructions
 
 ```bash
+## ⚙️ Setup Instructions
+
+```bash
 git clone https://github.com/Sanskriti4422/village-api-saas.git
 cd village-api-saas
 npm install
+
+# Setup database
+npx prisma generate
+npx prisma db push
+
+# (Optional) Import dataset
+node scripts/import-to-db.ts
+
+# Run project
 npm run dev
